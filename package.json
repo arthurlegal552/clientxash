@@ -18,7 +18,8 @@
     "react-app-rewired": "^2.2.1"
   },
   "scripts": {
-    "start": "react-app-rewired start"
+    "start": "react-app-rewired start",
+    "build": "react-scripts build"
   },
   "browserslist": {
     "production": [

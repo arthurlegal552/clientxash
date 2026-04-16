@@ -83,7 +83,9 @@ export class Xash3DWebRTC extends Xash3D {
 
             this.ws.onerror = (error) => {
                 console.error('🔴 Erro WebSocket:', error);
-                if (error?.target?.readyState === WebSocket.CLOSED) {
+                // Note: error.target.readyState is not available in TypeScript for WebSocket
+                // Checking ws readyState directly
+                if (this.ws?.readyState === WebSocket.CLOSED) {
                     alert('Não foi possível conectar ao servidor. Verifique:\n' +
                           '1. Você está usando https:// na página?\n' +
                           '2. O endereço WebSocket está correto?\n' +
