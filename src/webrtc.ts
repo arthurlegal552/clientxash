@@ -120,7 +120,7 @@ this.peer.onicecandidate = e => {
         return new Promise(resolve => {
             this.resolve = resolve;
             
-            this.ws = new WebSocket("wss://gld-src-emscripten.onrender.com//websocket")
+            this.ws = new WebSocket("wss://gld-src-emscripten.onrender.com/websocket")
             this.ws.onopen = () => {
     console.log("WebSocket conectado")
 }
