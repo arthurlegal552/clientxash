@@ -73,9 +73,36 @@ export class Xash3DWebRTC extends Xash3D {
         const stream = new MediaStream()
         return new Promise(resolve => {
             this.resolve = resolve;
-            this.ws = new WebSocket("wss://gld-src-emscripten.onrender.com/websocket")
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            this.ws = new WebSocket(`${wsProtocol}//${location.host}/websocket`);
+
+            this.ws.onopen = () => {
+                console.log('🟢 WebSocket conectado - iniciando sinalização...');
+                this.initConnection(stream);
+            };
+
+            this.ws.onerror = (error) => {
+                console.error('🔴 Erro WebSocket:', error);
+                if (error?.target?.readyState === WebSocket.CLOSED) {
+                    alert('Não foi possível conectar ao servidor. Verifique:\n' +
+                          '1. Você está usando https:// na página?\n' +
+                          '2. O endereço WebSocket está correto?\n' +
+                          '3. O servidor está online?');
+                }
+            };
+
+            this.ws.onclose = (event) => {
+                if (event.code === 1008) {
+                    console.error('🔴 Conexão rejeitada: origem não permitida');
+                    alert('Erro de segurança: o domínio desta página não está autorizado ' +
+                          '\n          a conectar ao servidor. Contate o administrador.');
+                } else if (event.code !== 1000) {
+                    console.warn(`🟡 Conexão fechada (${event.code}): ${event.reason}`);
+                    setTimeout(() => this.connect(), 3000);
+                }
+            };
+
             const handler = async (e: MessageEvent) => {
-                this.initConnection(stream)
                 const parsed = JSON.parse(e.data)
                 if (parsed.event === 'offer') {
                     await this.peer!.setRemoteDescription(JSON.parse(parsed.data))
@@ -89,8 +116,9 @@ export class Xash3DWebRTC extends Xash3D {
                 if (parsed.event === 'candidate') {
                     await this.peer!.addIceCandidate(JSON.parse(parsed.data))
                 }
-            }
-            this.ws.addEventListener('message', handler)
+            };
+
+            this.ws.addEventListener('message', handler);
         })
     }
 
