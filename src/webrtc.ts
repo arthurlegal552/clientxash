@@ -21,20 +21,7 @@ export class Xash3DWebRTC extends Xash3D {
     initConnection(stream: MediaStream) {
         if (this.peer) return
 
-        this.peer = new RTCPeerConnection({
-  iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    {
-      urls: [
-        "turn:openrelay.metered.ca:80",
-        "turn:openrelay.metered.ca:443",
-        "turn:openrelay.metered.ca:443?transport=tcp"
-      ],
-      username: "openrelayproject",
-      credential: "openrelayproject"
-    }
-  ]
-})
+        this.peer = new RTCPeerConnection()
         this.peer.onicecandidate = e => {
             if (!e.candidate) {
                 return
@@ -48,39 +35,6 @@ export class Xash3DWebRTC extends Xash3D {
             this.peer!.addTrack(t, stream)
         })
         let channelsCount = 0
-        this.peer = new RTCPeerConnection({
-    iceServers: [
-        { urls: "stun:stun.l.google.com:19302" }
-    ]
-})
-
-this.peer.onconnectionstatechange = () => {
-    console.log("Peer state:", this.peer?.connectionState)
-}
-
-this.peer.oniceconnectionstatechange = () => {
-    console.log("ICE state:", this.peer?.iceConnectionState)
-}
-this.peer.onicecandidate = e => {
-    console.log("ICE candidate:", e.candidate)
-
-    if (!e.candidate) return
-
-    this.ws!.send(JSON.stringify({
-        event: 'candidate',
-        data: JSON.stringify(e.candidate.toJSON())
-    }))
-}
-this.peer.onicecandidate = e => {
-    console.log("ICE candidate:", e.candidate)
-
-    if (!e.candidate) return
-
-    this.ws!.send(JSON.stringify({
-        event: 'candidate',
-        data: JSON.stringify(e.candidate.toJSON())
-    }))
-}
         this.peer.ondatachannel = (e) => {
             if (e.channel.label === 'write') {
                 e.channel.onmessage = (ee) => {
@@ -119,11 +73,7 @@ this.peer.onicecandidate = e => {
         const stream = new MediaStream()
         return new Promise(resolve => {
             this.resolve = resolve;
-            
             this.ws = new WebSocket("wss://gld-src-emscripten.onrender.com/websocket")
-            this.ws.onopen = () => {
-    console.log("WebSocket conectado")
-}
             const handler = async (e: MessageEvent) => {
                 this.initConnection(stream)
                 const parsed = JSON.parse(e.data)
