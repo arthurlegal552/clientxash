@@ -33,11 +33,21 @@ const App: FC = () => {
 
                 const [zip, extras] = await Promise.all([
                     (async () => {
-                        const res = await fetch('valve.zip')
-                        return await loadAsync(await res.arrayBuffer());
+                        const res = await fetch('valve.zip');
+                        if (!res.ok) {
+                            throw new Error(`HTTP error! status: ${res.status}`);
+                        }
+                        const contentType = res.headers.get('content-type');
+                        console.log(`Content-Type of valve.zip: ${contentType}`);
+                        const arrayBuffer = await res.arrayBuffer();
+                        if (arrayBuffer.byteLength === 0) {
+                            throw new Error('Downloaded valve.zip is empty');
+                        }
+                        console.log(`Size of valve.zip: ${arrayBuffer.byteLength} bytes`);
+                        return await loadAsync(arrayBuffer);
                     })(),
                     (async () => {
-                        const res = await fetch(extrasURL)
+                        const res = await fetch(extrasURL);
                         return await res.arrayBuffer()
                     })(),
                     x.init(),
